@@ -1,26 +1,31 @@
 # productos/views.py
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from .models import Producto
+from .forms import ProductoForm
+from django.contrib.auth.decorators import login_required
  
-# Almacena los productos en memoria
-productos = []
+# Vista para listar productos
+def lista_productos(request):
+    productos = Producto.objects.all()
+    return render(request, 'productos/index.html', {'productos': productos})
  
-def index(request):
-    return render(request, 'productos/index.html')
- 
-def registro(request):
+# Vista para registrar un producto (solo accesible para usuarios autenticados)
+@login_required
+def registrar_producto(request):
     if request.method == 'POST':
-        # Obtén los datos del formulario y agrégalos a la lista de productos
-        codigo = request.POST['codigo']
-        nombre = request.POST['nombre']
-        marca = request.POST['marca']
-        fecha_vencimiento = request.POST['fecha_vencimiento']
-        producto = {'codigo': codigo, 'nombre': nombre, 'marca': marca, 'fecha_vencimiento': fecha_vencimiento}
-        productos.append(producto)
-        return render(request, 'productos/resultado.html', {'producto': producto})
-    return render(request, 'productos/registro.html')
+        form = ProductoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('resultado_producto')
+    else:
+        form = ProductoForm()
+    return render(request, 'productos/registro.html', {'form': form})
  
-def resultado(request):
+# Vista para mostrar el resultado de la creación
+def resultado_producto(request):
     return render(request, 'productos/resultado.html')
  
+# Vista para mostrar la consulta de productos
 def consulta(request):
+    productos = Producto.objects.all()
     return render(request, 'productos/consulta.html', {'productos': productos})
