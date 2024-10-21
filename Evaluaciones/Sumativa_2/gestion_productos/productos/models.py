@@ -1,3 +1,4 @@
+# productos/models.py
 from django.db import models
  
 # Modelo Marca
