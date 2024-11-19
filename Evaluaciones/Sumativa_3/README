@@ -24,23 +24,70 @@ Ejecuta los siguientes comandos en la terminal de tu editor:
 
 - python manage.py runserver
 
+**************url's*****************
+http://127.0.0.1:8000/logout/ (cerrar sesion)
+http://127.0.0.1:8000/admin/ (ir al panel de adm.SQLlite)
+http://127.0.0.1:8000/registro/ (registro de productos)
 
-
-la URL http://127.0.0.1:8000/registro/ TE PERMITE REGISTRAR 
-
-La URL http://127.0.0.1:8000/resultado/ te indicara que el registro se añdio
-
-La url http://127.0.0.1:8000/ te muestra los registros y ademas te permite registrar y ir a la pantalla de admin de bd
-
-
+**************************************************************
 ## Administrador de Django
 
 - Nombre de usuario: admin
 - Contraseña: inacap2024
 
-## Información Importante
+## Usuario de Django sin privilegios 
 
-No olvides que a la hora de ejecutar la aplicación debes encontrarte en la carpeta de gestion_productos. Para eso, escribe en tu terminal:
+- Nombre de usuario: lucho
+- Contraseña: Qweasd1.
+**************************************************************
+## ejemplos de donde se implementa seguridad 
 
-- cd sumativa2
-- cd gestion_productos
+1- Protección CSRF (Cross-Site Request Forgery):
+
+Aplicación: Django tiene una medida de seguridad incorporada para proteger contra los ataques CSRF. En la configuración de settings.py, el middleware django.middleware.csrf.CsrfViewMiddleware está habilitado por defecto en la lista de MIDDLEWARE.
+Resultado: Este middleware protege las vistas POST asegurando que cada solicitud POST proveniente de los formularios en tu aplicación contenga un token CSRF, que Django verifica automáticamente. Esto previene que los atacantes puedan hacer solicitudes malintencionadas en nombre de un usuario legítimo.
+actualizar.html
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Actualizar</button>
+    <a href="{% url 'lista_productos' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+
+2- HTTPS y Cookie Seguras:
+
+Aplicación: En el archivo settings.py, se han configurado las siguientes opciones para asegurar que las cookies y las sesiones se transmitan de manera segura, especialmente cuando se trabaja con HTTPS.
+Resultado: Activar SESSION_COOKIE_SECURE y CSRF_COOKIE_SECURE garantiza que las cookies de sesión y CSRF solo se envíen a través de conexiones HTTPS, protegiendo la transmisión de datos contra ataques de interceptación como el hombre en el medio (MITM).
+
+settings.py
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+3- Autenticación y Autorización:
+
+Aplicación: En el archivo views.py, se utiliza el decorador @login_required para asegurar que solo los usuarios autenticados puedan acceder a ciertas vistas. Además, se comprueba si el usuario pertenece al grupo ADMIN_PRODUCTS para proporcionar acceso a funciones administrativas.
+Resultado: Esto evita que usuarios no autenticados o sin los permisos adecuados accedan a recursos restringidos, asegurando que solo los usuarios autorizados puedan ver, registrar, actualizar o eliminar productos.
+views.py
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def lista_productos(request):
+    productos = Producto.objects.all()
+    return render(request, 'productos/index.html', {'productos': productos, 'user': request.user})
+
+@login_required
+def productos_view(request):
+    if not request.session.get('is_admin', False):
+        return HttpResponse("No tienes permisos para acceder a esta página.", status=403)
+    return render(request, 'productos/index.html')
+
+4- XSS Protection and Clickjacking Protection:
+Aplicación: En el archivo settings.py, se han configurado cabeceras HTTP para mejorar la seguridad contra ataques de tipo Cross-Site Scripting (XSS) y Clickjacking.
+Resultado: Establecer SECURE_BROWSER_XSS_FILTER activa los filtros XSS en navegadores compatibles, ayudando a prevenir ataques en los que se puedan inyectar scripts maliciosos. Además, X_FRAME_OPTIONS se establece en DENY para evitar que tu sitio web sea mostrado en un <iframe> en otros dominios, lo cual es una práctica recomendada para prevenir ataques de clickjacking.
+settings.py
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+
+
+
+
