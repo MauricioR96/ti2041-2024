@@ -35,59 +35,237 @@ http://127.0.0.1:8000/registro/ (registro de productos)
 - Nombre de usuario: admin
 - Contraseña: inacap2024
 
+## Usuario Full Privilegios (Nuevo)
+
+- Nombre de usuario: USUARIOJWT
+- Contraseña: Mauricio1.
+
 ## Usuario de Django sin privilegios 
 
 - Nombre de usuario: lucho
 - Contraseña: Qweasd1.
 **************************************************************
-## ejemplos de donde se implementa seguridad 
 
-1- Protección CSRF (Cross-Site Request Forgery):
+PARA CREAR UN TOKEN API
 
-Aplicación: Django tiene una medida de seguridad incorporada para proteger contra los ataques CSRF. En la configuración de settings.py, el middleware django.middleware.csrf.CsrfViewMiddleware está habilitado por defecto en la lista de MIDDLEWARE.
-Resultado: Este middleware protege las vistas POST asegurando que cada solicitud POST proveniente de los formularios en tu aplicación contenga un token CSRF, que Django verifica automáticamente. Esto previene que los atacantes puedan hacer solicitudes malintencionadas en nombre de un usuario legítimo.
-actualizar.html
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Actualizar</button>
-    <a href="{% url 'lista_productos' %}" class="btn btn-secondary">Cancelar</a>
-</form>
+IR A POSTMAN CON LA SGTE URL: http://127.0.0.1:8000/api/token/
+BODY:{
+    "username": "mauricio1",
+    "password": "mauricio2024"
+}
 
-2- HTTPS y Cookie Seguras:
+RESPUESTA ESPERADA:
 
-Aplicación: En el archivo settings.py, se han configurado las siguientes opciones para asegurar que las cookies y las sesiones se transmitan de manera segura, especialmente cuando se trabaja con HTTPS.
-Resultado: Activar SESSION_COOKIE_SECURE y CSRF_COOKIE_SECURE garantiza que las cookies de sesión y CSRF solo se envíen a través de conexiones HTTPS, protegiendo la transmisión de datos contra ataques de interceptación como el hombre en el medio (MITM).
+{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTczNDMyMzQyNCwiaWF0IjoxNzM0MjM3MDI0LCJqdGkiOiI2NzcyZWE0NGM5ZWU0M2RlODkyMzZiNjk5OTJhYzQ5NiIsInVzZXJfaWQiOjN9.IMOAEO-ZnnZI5BU4uKLmTsjiiCnKH8rBBzh4fYscLKg",
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0MjM3NjI0LCJpYXQiOjE3MzQyMzcwMjQsImp0aSI6ImE3NDBiMzAzY2M0ZDQyMzliNGI3Y2Q0NjkxYWEyMDUwIiwidXNlcl9pZCI6M30.uktJeag8xK4gdjipw6fyh36A7aOgeTdSShNs4nSBKTo"
+}
 
-settings.py
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
 
-3- Autenticación y Autorización:
+PARA PROBAR LA API:
 
-Aplicación: En el archivo views.py, se utiliza el decorador @login_required para asegurar que solo los usuarios autenticados puedan acceder a ciertas vistas. Además, se comprueba si el usuario pertenece al grupo ADMIN_PRODUCTS para proporcionar acceso a funciones administrativas.
-Resultado: Esto evita que usuarios no autenticados o sin los permisos adecuados accedan a recursos restringidos, asegurando que solo los usuarios autorizados puedan ver, registrar, actualizar o eliminar productos.
-views.py
-from django.contrib.auth.decorators import login_required
+GET A LA SIGUIENTE URL : http://127.0.0.1:8000/api/productos/
+Auth Type: Bearer Token
 
-@login_required
-def lista_productos(request):
-    productos = Producto.objects.all()
-    return render(request, 'productos/index.html', {'productos': productos, 'user': request.user})
+token ->     "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0MjM3NjI0LCJpYXQiOjE3MzQyMzcwMjQsImp0aSI6ImE3NDBiMzAzY2M0ZDQyMzliNGI3Y2Q0NjkxYWEyMDUwIiwidXNlcl9pZCI6M30.uktJeag8xK4gdjipw6fyh36A7aOgeTdSShNs4nSBKTo"
+}
+**************************************************************
 
-@login_required
-def productos_view(request):
-    if not request.session.get('is_admin', False):
-        return HttpResponse("No tienes permisos para acceder a esta página.", status=403)
-    return render(request, 'productos/index.html')
+Ejemplos para probar todos los métodos HTTP de la API usando Postman. Incluyo la estructura de las solicitudes y respuestas esperadas.
 
-4- XSS Protection and Clickjacking Protection:
-Aplicación: En el archivo settings.py, se han configurado cabeceras HTTP para mejorar la seguridad contra ataques de tipo Cross-Site Scripting (XSS) y Clickjacking.
-Resultado: Establecer SECURE_BROWSER_XSS_FILTER activa los filtros XSS en navegadores compatibles, ayudando a prevenir ataques en los que se puedan inyectar scripts maliciosos. Además, X_FRAME_OPTIONS se establece en DENY para evitar que tu sitio web sea mostrado en un <iframe> en otros dominios, lo cual es una práctica recomendada para prevenir ataques de clickjacking.
-settings.py
-SECURE_BROWSER_XSS_FILTER = True
-X_FRAME_OPTIONS = 'DENY'
+Método: POST
+URL: http://127.0.0.1:8000/api/token/
+ 
+Body (JSON):
+ 
+{
+    "username": "USUARIOJWT",
+    "password": "Mauricio1"
+}
+ 
+Respuesta Exitosa:
+ 
+{
+    "refresh": "<refresh_token>",
+    "access": "<access_token>"
+}
+ 
+2. Listar Productos
+ 
+Método: GET
+URL: http://127.0.0.1:8000/api/productos/
+ 
+Headers:
+ 
+    Authorization: Bearer <access_token>
+ 
+Respuesta Exitosa (Ejemplo):
+ 
+[
+    {
+        "id": 1,
+        "codigo": "B-1331",
+        "nombre": "Producto Ejemplo",
+        "precio": "1000000.00",
+        "marca": 1,
+        "categoria": 2,
+        "caracteristicas": [4, 5]
+    },
+    {
+        "id": 2,
+        "codigo": "A-0002",
+        "nombre": "Otro Producto",
+        "precio": "50000.00",
+        "marca": 2,
+        "categoria": 1,
+        "caracteristicas": []
+    }
+]
+ 
+3. Crear un Producto
+ 
+Método: POST
+URL: http://127.0.0.1:8000/api/productos/
+ 
+Headers:
+ 
+    Authorization: Bearer <access_token>
+    Content-Type: application/json
+ 
+Body (JSON):
+ 
+{
+    "codigo": "B-2000",
+    "nombre": "Nuevo Producto",
+    "precio": "120000.50",
+    "marca": 1,
+    "categoria": 1,
+    "caracteristicas": [4, 5]
+}
+ 
+Respuesta Exitosa (Ejemplo):
+ 
+{
+    "id": 3,
+    "codigo": "B-2000",
+    "nombre": "Nuevo Producto",
+    "precio": "120000.50",
+    "marca": 1,
+    "categoria": 1,
+    "caracteristicas": [4, 5]
+}
+ 
+4. Obtener Detalle de un Producto
+ 
+Método: GET
+URL: http://127.0.0.1:8000/api/productos/<id>/
+Reemplaza <id> por el ID del producto (por ejemplo, 1).
+ 
+Headers:
+ 
+    Authorization: Bearer <access_token>
+ 
+Respuesta Exitosa (Ejemplo):
+ 
+{
+    "id": 1,
+    "codigo": "B-1331",
+    "nombre": "Producto Ejemplo",
+    "precio": "1000000.00",
+    "marca": 1,
+    "categoria": 2,
+    "caracteristicas": [4, 5]
+}
+ 
+5. Actualizar un Producto
+ 
+Método: PUT
+URL: http://127.0.0.1:8000/api/productos/<id>/
+Reemplaza <id> con el ID del producto.
+ 
+Headers:
+ 
+    Authorization: Bearer <access_token>
+    Content-Type: application/json
+ 
+Body (JSON):
+ 
+{
+    "codigo": "B-1331",
+    "nombre": "Producto Actualizado",
+    "precio": "1100000.00",
+    "marca": 1,
+    "categoria": 1,
+    "caracteristicas": [4]
+}
+ 
+Respuesta Exitosa:
+ 
+{
+    "id": 1,
+    "codigo": "B-1331",
+    "nombre": "Producto Actualizado",
+    "precio": "1100000.00",
+    "marca": 1,
+    "categoria": 1,
+    "caracteristicas": [4]
+}
+ 
+6. Actualizar parcialmente un Producto
+ 
+Método: PATCH
+URL: http://127.0.0.1:8000/api/productos/<id>/
+Reemplaza <id> con el ID del producto.
+ 
+Headers:
+ 
+    Authorization: Bearer <access_token>
+    Content-Type: application/json
+ 
+Body (JSON):
+ 
+{
+    "precio": "900000.00"
+}
+ 
+Respuesta Exitosa:
+ 
+{
+    "id": 1,
+    "codigo": "B-1331",
+    "nombre": "Producto Actualizado",
+    "precio": "900000.00",
+    "marca": 1,
+    "categoria": 1,
+    "caracteristicas": [4]
+}
+ 
+7. Eliminar un Producto
+ 
+Método: DELETE
+URL: http://127.0.0.1:8000/api/productos/<id>/
+Reemplaza <id> con el ID del producto.
+ 
+Headers:
+ 
+    Authorization: Bearer <access_token>
+ 
+Respuesta Exitosa:
+ 
+    Status: 204 No Content
+    Body: Vacío.
 
+
+***********************************************************
+
+Se ha implementado una API REST básica utilizando NinjaAPI. La documentación Swagger está disponible en:
+
+- http://127.0.0.1:8000/swagger/
+
+************************************************************
+## Información Importante
+
+No olvides que a la hora de ejecutar la aplicación debes encontrarte en la carpeta de gestion_productos. Para eso, escribe en tu terminal:
 
 
 
